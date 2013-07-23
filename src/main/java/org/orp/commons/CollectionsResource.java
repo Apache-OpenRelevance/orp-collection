@@ -12,7 +12,7 @@ public interface CollectionsResource {
 	public Representation list();
 	
 	@Post("json:json")
-	public Representation create(JsonRepresentation entity);
+	public Representation execute(JsonRepresentation entity);
 	
 	@Delete("json:json")
 	public Representation delete(JsonRepresentation entity);

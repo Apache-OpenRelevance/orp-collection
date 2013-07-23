@@ -1,4 +1,4 @@
 #!/bin/bash
-COLLECTION_HOME="/home/dc/Openrel/solrj/collection"
+COLLECTION_HOME="/home/dc/git/orp-collection"
 rm -rf $COLLECTION_HOME/collections/*
 sqlite3 $COLLECTION_HOME/db/collection.db 'DELETE FROM COLLECTION'

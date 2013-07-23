@@ -82,12 +82,13 @@ public interface DBHandler {
 	 * 
 	 * @param a table's name
 	 * @param a group of fieldName-value pairs to be updated in the table. 
+	 * @param a group of fieldName-value pairs representing conditions in the WHERE clause
 	 * 
 	 * This method is used for updating a table. 
 	 * 
 	 * Since this method may involves user input, prepared SQL statement is required. 
 	 */
-	public void update(String tabName, Map<String, Object> values);
+	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds);
 	
 	/**
 	 * 

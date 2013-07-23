@@ -126,8 +126,25 @@ public class DBHandlerImpl implements DBHandler{
 		
 	}
 	
-	public void update(String tabName, Map<String, Object> values) {
-		
+	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds){
+		StringBuilder query = new StringBuilder("UPDATE " + tabName + " SET ");
+		Map<Integer, Object> orderValues = new HashMap<Integer, Object>();
+		int count = 1;
+		for(String key : values.keySet()){
+			query.append(key + "=?, ");
+			orderValues.put(count ++, values.get(key));
+		}
+		query.replace(query.length() - 2, query.length(), " WHERE ");
+		for(String key : conds.keySet()){
+			query.append(key + "=? AND ");
+			orderValues.put(count ++, conds.get(key));
+		}
+		query.replace(query.length() - 4, query.length(), "");
+		try{
+			setPreparedParams(query.toString(),tabName, orderValues).executeUpdate();
+		}catch(SQLException se){
+			se.printStackTrace();
+		}
 	}
 	
 	public void deleteById(String tabName, String id){
@@ -239,7 +256,6 @@ public class DBHandlerImpl implements DBHandler{
 	}
 
 	public String escapeSpecialChars(String tabName) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

@@ -19,7 +19,8 @@ public class CollectionApplication extends WadlApplication{
 					"URI VARCHAR(50) NOT NULL," +
 					"CREATE_TIME DATE NOT NULL," +
 					"TOPICS_SIZE INT," +
-					"QRELS_SIZE INT)");
+					"QRELS_SIZE INT," +
+					"CORPUS VARCHAR(20))");
 		handler.clean();
 	}
 	

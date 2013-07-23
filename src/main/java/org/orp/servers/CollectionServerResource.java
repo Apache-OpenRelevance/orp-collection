@@ -3,6 +3,7 @@ package org.orp.servers;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +46,11 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 			name = (String)info.get("name");
 	}
 	
+	public Representation execute(JsonRepresentation entity){
+		
+		return null;
+	}
+	
 	public Representation present(){
 		Map<String, Object> summary = new HashMap<String, Object>();
 		summary.put("id", id);
@@ -76,9 +82,13 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 				if(fi.getFieldName().equals("upload"))
 					fileItem = fi;
 			}
-			if(map.get("type").equals("topics"))
+	
+			String type = map.get("type");
+			String corpus = map.get("corpus");
+	
+			if(type.equals("topics"))
 				repoPath.append("/topics/");
-			else if(map.get("type").equals("qrels"))
+			else if(type.equals("qrels"))
 				repoPath.append("/qrels/");
 			else if(map.get("type") == null){
 				setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
@@ -88,7 +98,13 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 				setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
 				return CollectionUtils.message("Problematic request");
 			}
-			compressedWrite(fileItem, repoPath.append(map.get("type") + ".gz").toString());
+			compressedWrite(fileItem, repoPath.append(type + ".gz").toString());
+			Map<String, Object> updates = new HashMap<String, Object>();
+			updates.put(type + "_size", (int)new File(repoPath.toString()).length());
+			if(corpus != null) updates.put("corpus", corpus);
+			Map<String, Object> conds = new HashMap<String, Object>();
+			conds.put("id", id);
+			handler.update("Collection", updates, conds);
 		}catch(FileUploadException fue){
 			fue.printStackTrace();
 		}catch(Exception e){
