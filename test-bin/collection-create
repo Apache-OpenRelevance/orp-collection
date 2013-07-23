@@ -1,0 +1,4 @@
+#!/bin/bash
+
+curl -H "Accept: application/json" -H "Content-type: application/json" -d {"name":"$1"} http://localhost:8111/collections
+

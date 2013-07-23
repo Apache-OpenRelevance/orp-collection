@@ -1,0 +1,3 @@
+#!/bin/bash
+COLLECTION_HOME="/home/dc/Openrel/solrj/collection"
+sqlite3 $COLLECTION_HOME/db/collection.db 'SELECT * FROM COLLECTION' 

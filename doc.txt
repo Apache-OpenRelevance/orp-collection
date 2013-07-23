@@ -1,0 +1,13 @@
+1. /collections GET list all collections
+curl http://localhost:8111/collections
+
+2. /collections POST create a collection
+curl -H "Accept: application/json" -H "Content-type: application/json" -d {"name":"A Collection"} http://localhost:8111/collections
+
+3. /collections DELETE remove a colletion
+curl -X DELETE -H "Accept: application/json" -H "Content-type: application/json" -d {"id":"a2ca1c0e1a914a39972419e182521728"} http://localhost:8111/collections
+
+
+
+
+
