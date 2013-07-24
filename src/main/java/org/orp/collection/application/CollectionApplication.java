@@ -3,7 +3,7 @@ package org.orp.collection.application;
 import org.orp.collection.servers.CollectionServerResource;
 import org.orp.collection.servers.CollectionsServerResource;
 import org.orp.collection.servers.TopicsServerResource;
-import org.orp.colletion.utils.DBHandlerImpl;
+import org.orp.collection.utils.DBHandlerImpl;
 import org.restlet.Restlet;
 import org.restlet.ext.wadl.WadlApplication;
 import org.restlet.routing.Router;

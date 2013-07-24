@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 
 
 import org.orp.collection.commons.TopicsResource;
-import org.orp.colletion.utils.CollectionUtils;
+import org.orp.collection.utils.CollectionUtils;
 import org.restlet.data.Disposition;
 import org.restlet.data.MediaType;
 import org.restlet.data.Status;

@@ -1,4 +1,4 @@
-package org.orp.colletion.utils;
+package org.orp.collection.utils;
 
 import java.sql.Connection;
 import java.sql.Date;

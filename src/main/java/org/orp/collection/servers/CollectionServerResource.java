@@ -26,9 +26,9 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.orp.collection.commons.CollectionResource;
 import org.orp.collection.exceptions.InvalidCommandException;
-import org.orp.colletion.utils.CollectionUtils;
-import org.orp.colletion.utils.DBHandlerImpl;
-import org.orp.colletion.utils.JsonUtils;
+import org.orp.collection.utils.CollectionUtils;
+import org.orp.collection.utils.DBHandlerImpl;
+import org.orp.collection.utils.JsonUtils;
 
 public class CollectionServerResource extends WadlServerResource implements CollectionResource{
 

@@ -10,7 +10,7 @@ import java.util.Set;
 import junit.framework.TestCase;
 
 import org.codehaus.jettison.json.JSONArray;
-import org.orp.colletion.utils.DBHandlerImpl;
+import org.orp.collection.utils.DBHandlerImpl;
 
 
 public class DBHandlerTester extends TestCase{
