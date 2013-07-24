@@ -126,6 +126,12 @@ public class DBHandlerImpl implements DBHandler{
 		
 	}
 	
+	public void updateById(String tabName, Map<String, Object> values, String id){
+		Map<String, Object> cond = new HashMap<String, Object>(1);
+		cond.put("id", id);
+		update(tabName, values, cond);
+	}
+	
 	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds){
 		StringBuilder query = new StringBuilder("UPDATE " + tabName + " SET ");
 		Map<Integer, Object> orderValues = new HashMap<Integer, Object>();

@@ -12,7 +12,7 @@ public interface TopicsResource {
 	 * @return a JSON file with topic file name, size and corpus, etc.
 	 */
 	@Get
-	public Representation present();
+	public Representation download();
 	
 	@Post("json:json")
 	public Representation execute(JsonRepresentation entity);

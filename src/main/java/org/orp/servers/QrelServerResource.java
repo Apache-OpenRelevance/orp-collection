@@ -3,30 +3,28 @@ package org.orp.servers;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-
-import org.orp.commons.TopicsResource;
+import org.orp.commons.QrelsResource;
 import org.orp.utils.CollectionUtils;
 import org.restlet.data.Disposition;
 import org.restlet.data.MediaType;
 import org.restlet.data.Status;
-import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.ext.wadl.WadlServerResource;
 import org.restlet.representation.FileRepresentation;
 import org.restlet.representation.Representation;
 
-public class TopicsServerResource extends WadlServerResource implements TopicsResource{
+public class QrelServerResource extends WadlServerResource implements QrelsResource{
 
 	public Representation download() {
 		try{	
 			String id = getRequest().getResourceRef().getIdentifier()
 					.replaceAll("http://.*/collections/", "");
-			File file = new File("collections/" + id + "/topics/topics.gz");
+			File file = new File("collections/" + id + "/qrels/qrels.gz");
 			if(!file.exists())
 				throw new FileNotFoundException();
 			FileRepresentation download = new FileRepresentation(
 					file, MediaType.APPLICATION_GNU_TAR);
 			Disposition disp = new Disposition(Disposition.TYPE_ATTACHMENT);
-			disp.setFilename("topics.gz");
+			disp.setFilename("qrels.gz");
 			download.setDisposition(disp);
 			return download;
 		}catch(FileNotFoundException fe){
@@ -34,8 +32,8 @@ public class TopicsServerResource extends WadlServerResource implements TopicsRe
 			return CollectionUtils.message("No file found");
 		}
 	}
-	
-	public Representation execute(JsonRepresentation entity) {
+
+	public Representation execute() {
 		return null;
 	}
 

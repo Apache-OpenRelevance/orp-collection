@@ -22,9 +22,13 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.orp.commons.CollectionResource;
+import org.orp.exceptions.InvalidCommandException;
 import org.orp.utils.CollectionUtils;
 import org.orp.utils.DBHandlerImpl;
+import org.orp.utils.JsonUtils;
 
 public class CollectionServerResource extends WadlServerResource implements CollectionResource{
 
@@ -47,8 +51,27 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 	}
 	
 	public Representation execute(JsonRepresentation entity){
-		
-		return null;
+		try {
+			Map<String, Object> data = JsonUtils.toMap(entity);
+			if(data.size() != 1)
+				throw new InvalidCommandException("");
+			if(data.get("update-info") != null){
+				@SuppressWarnings("unchecked")
+				Map<String, Object> info = (Map<String, Object>)data.get("update-info");
+				handler.updateById("COLLECTION", info, id);
+				return CollectionUtils.message("Update successful.");
+			}else{
+				throw new InvalidCommandException("");
+			}
+		} catch (JsonParseException e) {
+			return CollectionUtils.message("Parse Error.");
+		} catch (JsonMappingException e) {
+			return CollectionUtils.message("Mapping Error.");
+		} catch (IOException e) {
+			return CollectionUtils.message("IO Error.");
+		} catch (InvalidCommandException e){
+			return CollectionUtils.message("Invalid Command.");
+		}
 	}
 	
 	public Representation present(){

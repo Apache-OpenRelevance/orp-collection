@@ -8,9 +8,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.orp.commons.CollectionsResource;
+import org.orp.exceptions.CollectionNotFoundException;
 import org.orp.utils.DBHandlerImpl;
 import org.orp.utils.CollectionUtils;
+import org.orp.utils.JsonUtils;
 import org.restlet.data.Status;
 import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.ext.wadl.WadlServerResource;
@@ -45,8 +48,10 @@ public class CollectionsServerResource extends WadlServerResource implements Col
 	}
 
 	public Representation execute(JsonRepresentation entity) {
+		try{
 			Map<String, Object> values = new HashMap<String, Object>();
-			values.put("name", CollectionUtils.getJsonValue(entity, "name"));
+			String name = JsonUtils.getSimpleValue(entity, "name");
+			values.put("name", name);
 			String id = UUID.randomUUID().toString().replaceAll("-", "");
 			values.put("id", id);
 			values.put("uri", getRequest().getResourceRef().getIdentifier() + "/" + id);
@@ -57,22 +62,32 @@ public class CollectionsServerResource extends WadlServerResource implements Col
 					
 			handler.insert("COLLECTION", values);
 			handler.clean();
-				
-					
+			
 			setStatus(Status.SUCCESS_CREATED);
 			return new JsonRepresentation(values);
-		
+		}catch(JSONException je){
+			setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+			return CollectionUtils.message("Invalid key or missing value.");
+		}
 	}
 	
 	public Representation delete(JsonRepresentation entity){
-			String id = null;
-			id = CollectionUtils.getJsonValue(entity, "id"); 
-			if(handler.selectAllById("Collection", id).isEmpty())
-				return CollectionUtils.message("Collection " + id + " not found.");
+		String id = null;
+		try{
+		    id = JsonUtils.getSimpleValue(entity, "id");
+			if(handler.selectAllById("Collection", id) == null)
+				throw new CollectionNotFoundException();
 			CollectionUtils.deleteFile(new File(REPO + id));
 			handler.deleteById("Collection", id);
 			handler.clean();
 			return CollectionUtils.message("Collection " + id + " has been deleted.");		
+		}catch(JSONException je){
+			setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+			return CollectionUtils.message("Invalid key or missing value.");
+		}catch(CollectionNotFoundException ce){
+			setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+			return CollectionUtils.message("Collection " + id + " not found.");
+		}
 	}
 	
 }

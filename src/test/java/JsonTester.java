@@ -3,8 +3,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.orp.utils.JsonUtils;
 import org.restlet.ext.json.JsonRepresentation;
 
 import junit.framework.TestCase;
@@ -12,18 +14,19 @@ import junit.framework.TestCase;
 public class JsonTester extends TestCase{
 	public void testJsonObject() throws IOException, JSONException{
 		Map<String, Object> obj = new HashMap<String, Object>();
+		Map<String, Object> urls = new HashMap<String, Object>();
 		obj.put("id", "123");
 		obj.put("name", "bob");
-		obj.put("url", "bob.org");
+		urls.put("1", "bob.org");
+		urls.put("2", "john.org");
+		obj.put("url", urls);
 		
 		Map<String, Object> root = new HashMap<String, Object>();
 		root.put("root", obj);
 		
+		
 		JsonRepresentation entity = new JsonRepresentation(root);
 		System.out.println(entity.getText());
-		
-		System.out.println(entity.getJsonObject().keys().next());
-		for(String s : JSONObject.getNames(entity.getJsonObject()))
-			System.out.println(s);
+		Map<String, Object> map = new ObjectMapper().readValue(entity.getStream(), HashMap.class);
 	}
 }

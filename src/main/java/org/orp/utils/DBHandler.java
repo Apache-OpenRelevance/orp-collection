@@ -80,6 +80,14 @@ public interface DBHandler {
 	
 	/**
 	 * 
+	 * @param tabName
+	 * @param values
+	 * @param id
+	 */
+	public void updateById(String tabName, Map<String, Object> values, String id);
+	
+	/**
+	 * 
 	 * @param a table's name
 	 * @param a group of fieldName-value pairs to be updated in the table. 
 	 * @param a group of fieldName-value pairs representing conditions in the WHERE clause
