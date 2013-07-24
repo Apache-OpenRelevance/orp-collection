@@ -6,7 +6,7 @@ import java.util.Set;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.orp.utils.JsonUtils;
+import org.orp.colletion.utils.JsonUtils;
 import org.restlet.ext.json.JsonRepresentation;
 
 import junit.framework.TestCase;
