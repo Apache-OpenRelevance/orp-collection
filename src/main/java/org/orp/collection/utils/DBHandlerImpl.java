@@ -80,7 +80,7 @@ public class DBHandlerImpl implements DBHandler{
 		Map<String, Object> cond = new HashMap<String, Object>();
 		cond.put("id", id);
 		Map<String, Object> result = null;
-		for(Map<String,Object> key : select("COLLECTION", cond))
+		for(Map<String,Object> key : select(tabName, cond))
 			result = key;
 		return result;
 	}
