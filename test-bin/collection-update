@@ -1,0 +1,3 @@
+#!/bin/bash
+
+curl -H "Accept: application/json" -H "Content-type: application/json" -d {\"update-info\":{\"name\":\"aaa\"\,\"corpus\":\"OHSUMED\"}} http://localhost:8111/collections/$1
