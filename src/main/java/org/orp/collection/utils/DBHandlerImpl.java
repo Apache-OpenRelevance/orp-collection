@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.log4j.LogManager;
@@ -438,23 +437,45 @@ public class DBHandlerImpl implements DBHandler{
 		}
 	}
 
-//	public void clean() throws SQLException{
-//		
-//		stmt.close();
-//		c.close();
-//	}
-
 	@Override
-	public boolean exist(String tabName) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void createTable(String createStmt) {
-		// TODO Auto-generated method stub
+	public void clean() throws SQLException {
 		
+		stmt.close();
+		c.close();
 	}
+
+	@Override
+	public boolean exist(String tabName) throws SQLException {
+		// TODO Auto-generated method stub
+		log.info("exist()");
+		log.info("check table name: " + tabName);
+		ResultSet rs = c.getMetaData().getTables(null, null, tabName, null);
+		
+		if(rs == null) {
+			throw new RuntimeException("The result set of searching for " + tabName + "is null");
+		}
+		
+		if(!rs.isBeforeFirst()) {
+			return false;
+		} else {
+			return true;
+		}
+
+	}
+
+	@Override
+	public void createTable(String createStmt) throws SQLException {
+		// TODO Auto-generated method stub
+		log.info("createTable()");
+		
+		stmt = c.createStatement();
+		stmt.executeQuery(createStmt);
+		
+		log.info("table created");
+		clean();
+			
+	}
+	
 
 	@Override
 	public Map<String, Object> selectAllById(String tabName, String id) {
@@ -487,12 +508,6 @@ public class DBHandlerImpl implements DBHandler{
 			throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public void clean() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

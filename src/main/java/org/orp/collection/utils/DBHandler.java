@@ -11,10 +11,11 @@ public interface DBHandler {
 	 * 
 	 * @param a table's name
 	 * @return true if the table exists; false if the table does not exist
+	 * @throws SQLException
 	 * 
 	 * This method is used for determining if a table exists 
 	 */
-	public boolean exist(String tabName);	
+	public boolean exist(String tabName) throws SQLException;	
 	
 	/**
 	 * 
@@ -26,7 +27,7 @@ public interface DBHandler {
 	 * 
 	 * This method is used for creating a table
 	 */
-	public void createTable(String createStmt);
+	public void createTable(String createStmt) throws SQLException;
 	
 	/**
 	 * 
@@ -146,7 +147,7 @@ public interface DBHandler {
 	/**
 	 * This method is used for closing resources and connections.
 	 */
-	public void clean();
+	public void clean() throws SQLException;
 	
 	/**
 	 * 
