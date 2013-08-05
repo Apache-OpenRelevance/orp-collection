@@ -1,6 +1,7 @@
 package org.orp.collection.utils;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -47,47 +48,13 @@ public class DBHandlerImpl implements DBHandler{
 		Set<Map<String, Object>> result = new HashSet<Map<String, Object>>();
 		try{
 			 ResultSet rs = stmt.executeQuery("SELECT * FROM " + tabName);
-			 result = toResultMap(rs);
+			 result = toResultSet(rs);
 			 clean();
 		}catch(SQLException se){
 			se.printStackTrace();
 		}
 		return result;
 	}
-
-	public Set<Map<String, Object>> toResultMap(ResultSet rs) 
-			throws SQLException{
-		Set<Map<String, Object>> result = new HashSet<Map<String, Object>>();
-		Map<String, Integer> schema = getSchema(rs);
-		while(rs.next()){
-			Map<String, Object> row = new HashMap<String, Object>();
-			for(String col : schema.keySet()){
-				int type = schema.get(col);
-				if(type == Types.VARCHAR
-						|| type == Types.CHAR
-						|| type == Types.LONGNVARCHAR
-						|| type == Types.LONGVARCHAR)
-					row.put(col, rs.getString(col));
-				else if(type == Types.INTEGER
-						|| type == Types.BIGINT)
-					row.put(col, rs.getInt(col));
-				else if(type == Types.FLOAT)
-					row.put(col, rs.getFloat(col));
-				else if(type == Types.DOUBLE
-						|| type == Types.DECIMAL)
-					row.put(col, rs.getDouble(col));
-				else if(type == Types.DATE)
-					row.put(col, rs.getDate(col));
-				else{
-					row = null;
-					throw new SQLException("Unsupported type: " + type);
-				}
-			}
-			result.add(row);
-		}
-
-		return result;
-	} 
 
 	public Map<String, Integer> getSchema(ResultSet rs) 
 			throws SQLException{
@@ -479,9 +446,23 @@ public class DBHandlerImpl implements DBHandler{
 
 	@Override
 	public Map<String, Object> selectAllById(String tabName, String id) {
-		// TODO Auto-generated method stub
 		return null;
+		// TODO Auto-generated method stub
 	}
+//		String selectSQL = "SELECT * FROM " + tabName + " WHERE ID = ?";
+//		
+//		prepstmt = c.prepareStatement(selectSQL);
+//		prepstmt.setString(1, id);
+//		c.commit();
+//		
+//		ResultSet rs = prepstmt.executeQuery();
+//		
+		
+		
+		
+		
+		
+	
 
 	@Override
 	public Set<Map<String, Object>> select(String tabName,
@@ -500,14 +481,57 @@ public class DBHandlerImpl implements DBHandler{
 	public Map<String, Integer> getTableInfo(String tabName)
 			throws SQLException {
 		// TODO Auto-generated method stub
-		return null;
+		log.info("getTableInfo()");
+		log.info("table name: " + tabName);
+		
+		if(tabName == null || tabName.isEmpty()) {
+			throw new RuntimeException("Tabel name is not provided");
+		}
+		
+		Map<String, Integer> tabInfo = new HashMap<String, Integer>();
+		DatabaseMetaData meta = c.getMetaData();
+		
+		if(meta == null) {
+			log.warn("Metadata for the database is null");
+		} 
+		
+		ResultSet rs = meta.getColumns(null, null, tabName, null);
+		if(!rs.isBeforeFirst()) 
+				log.info("resultSet is empty");
+		
+		while(rs.next()) {
+			String col_name = rs.getString("COLUMN_NAME");
+//			System.out.println("column_name: " + col_name + "\t"); 
+			Integer data_type = rs.getInt("DATA_TYPE");
+			tabInfo.put(col_name, data_type);
+		}
+		
+		
+		return tabInfo;
 	}
 
 	@Override
 	public Map<String, Integer> getFieldsTypes(ResultSet rs)
 			throws SQLException {
 		// TODO Auto-generated method stub
-		return null;
+		log.info("getFieldsTypes()");
+		
+		if(rs == null || !rs.isBeforeFirst()) {
+			throw new RuntimeException("The resultSet is null or empty");
+		}
+		
+		Map<String, Integer> rsInfo = new HashMap<String, Integer>();
+		ResultSetMetaData meta = rs.getMetaData();
+		
+		if(meta == null) {
+			log.warn("Metadata for the database is null");
+		}
+		
+		for(int i=1; i<meta.getColumnCount(); i++) {
+			rsInfo.put(meta.getColumnLabel(i), meta.getColumnType(i));
+		}
+		
+		return rsInfo;
 	}
 
 	@Override
@@ -521,13 +545,56 @@ public class DBHandlerImpl implements DBHandler{
 	public Set<Map<String, Object>> toResultSet(ResultSet rs)
 			throws SQLException {
 		// TODO Auto-generated method stub
-		return null;
+		Set<Map<String, Object>> result = new HashSet<Map<String, Object>>();
+		Map<String, Integer> schema = getSchema(rs);
+		while(rs.next()){
+			Map<String, Object> row = new HashMap<String, Object>();
+			for(String col : schema.keySet()){
+				int type = schema.get(col);
+				if(type == Types.VARCHAR
+						|| type == Types.CHAR
+						|| type == Types.LONGNVARCHAR
+						|| type == Types.LONGVARCHAR)
+					row.put(col, rs.getString(col));
+				else if(type == Types.INTEGER
+						|| type == Types.BIGINT)
+					row.put(col, rs.getInt(col));
+				else if(type == Types.FLOAT)
+					row.put(col, rs.getFloat(col));
+				else if(type == Types.DOUBLE
+						|| type == Types.DECIMAL)
+					row.put(col, rs.getDouble(col));
+				else if(type == Types.DATE)
+					row.put(col, rs.getDate(col));
+				else{
+					row = null;
+					throw new SQLException("Unsupported type: " + type);
+				}
+			}
+			result.add(row);
+		}
+
+		return result;
+		
 	}
 
 	@Override
 	public String removeSpecialChars(String tabName) {
 		// TODO Auto-generated method stub
-		return null;
+		log.info("revoveSpecialChars()");
+		
+		if(tabName == null || tabName.isEmpty()) {
+			throw new RuntimeException("The string is null or empty");
+		}
+		
+		String rmv_char = "['\"%=<>,]";
+		String s = tabName.replaceAll(rmv_char, "").replaceAll("\\s+", " ");
+		
+		if(s.isEmpty()) {
+			log.info("String after special chars removal is empty");
+		}
+		
+		return s;
 	}
 
 	@Override

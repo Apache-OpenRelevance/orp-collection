@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,19 +29,27 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.orp.collection.commons.CollectionResource;
 import org.orp.collection.exceptions.InvalidCommandException;
 import org.orp.collection.utils.CollectionUtils;
+import org.orp.collection.utils.DBHandler;
 import org.orp.collection.utils.DBHandlerImpl;
 import org.orp.collection.utils.JsonUtils;
 
 public class CollectionServerResource extends WadlServerResource implements CollectionResource{
 
-	private DBHandlerImpl handler;
+	private DBHandler handler;
 	private String id;
 	private String name;
 	private Map<String, Object> info;
 	
 	@Override
 	public void doInit(){
-			handler = DBHandlerImpl.newHandler("jdbc:sqlite:db/collection.db");
+		
+				try {
+					handler = DBHandlerImpl.newHandler(DriverManager.getConnection("jdbc:sqlite:db/collection.db"));
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		
 			id = getRequest().getResourceRef().getIdentifier()
 					.replaceAll("http://.*/collections/", "");
 			info = handler.selectAllById("COLLECTION", id);
