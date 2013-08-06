@@ -9,6 +9,7 @@ import java.util.Map;
 import org.restlet.ext.json.JsonRepresentation;
 
 public class CollectionUtils {
+	
 	public static JsonRepresentation message(String content){
 		Map<String, Object> msg = new HashMap<String, Object>();
 		SimpleDateFormat pattern = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");

@@ -52,7 +52,12 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 		
 			id = getRequest().getResourceRef().getIdentifier()
 					.replaceAll("http://.*/collections/", "");
-			info = handler.selectAllById("COLLECTION", id);
+			try {
+				info = handler.selectAllById("COLLECTION", id);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			if(info == null){
 				setStatus(Status.CLIENT_ERROR_NOT_FOUND);
 				return;
@@ -78,16 +83,20 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 	}
 
 	public Representation execute(JsonRepresentation entity){
+		
 		try {
+			// Convert data from JSON format to HashMap
 			Map<String, Object> data = JsonUtils.toMap(entity);
+			
 			if(data.size() != 1)
 				throw new InvalidCommandException("");
+			
 			if(data.get("update-info") != null){
 				@SuppressWarnings("unchecked")
 				Map<String, Object> info = (Map<String, Object>)data.get("update-info");
 				handler.updateById("COLLECTION", info, id);
 				return CollectionUtils.message("Update successful.");
-			}else{
+			} else {
 				throw new InvalidCommandException("");
 			}
 		} catch (JsonParseException e) {
@@ -102,19 +111,31 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 	}
 	
 	public Representation store(Representation entity) {
-		try{	
+		
+		try{
+			
 			DiskFileItemFactory factory = new DiskFileItemFactory();
 			factory.setSizeThreshold(1024000);
+			
 			RestletFileUpload upload = new RestletFileUpload(factory);
 			List<FileItem> items = upload.parseRepresentation(entity);
 			FileItem fileItem = null;
+			
 			StringBuilder repoPath = new StringBuilder("collections/" + id);
 			Map<String, String> map = new HashMap<String, String>();
+			
 			for(FileItem fi : items){
+				
 				map.put(fi.getFieldName(), fi.getString());
 				if(fi.getFieldName().equals("upload"))
 					fileItem = fi;
+			
 			}
+
+			if(map.get("type") == null) {
+				setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+				return CollectionUtils.message("Please specify file type(\"topics\" or \"qrels\")");
+			}				
 	
 			String type = map.get("type");
 			String corpus = map.get("corpus");
@@ -123,21 +144,24 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 				repoPath.append("/topics/");
 			else if(type.equals("qrels"))
 				repoPath.append("/qrels/");
-			else if(map.get("type") == null){
-				setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-				return CollectionUtils.message("Please specify file type(\"topics\" or \"qrels\")");
-			}
 			else{
 				setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
 				return CollectionUtils.message("Problematic request");
 			}
+			
 			compressedWrite(fileItem, repoPath.append(type + ".gz").toString());
+			
 			Map<String, Object> updates = new HashMap<String, Object>();
 			updates.put(type + "_size", (int)new File(repoPath.toString()).length());
-			if(corpus != null) updates.put("corpus", corpus);
+			
+			if(corpus != null) 
+				updates.put("corpus", corpus);
+			
 			Map<String, Object> conds = new HashMap<String, Object>();
 			conds.put("id", id);
+			
 			handler.update("Collection", updates, conds);
+			
 		}catch(FileUploadException fue){
 			fue.printStackTrace();
 		}catch(Exception e){
@@ -158,6 +182,6 @@ public class CollectionServerResource extends WadlServerResource implements Coll
 			while((read = fileIn.read(bytes)) != -1)
 				gzipOut.write(bytes, 0, read);
 			fileIn.close();
-			gzipOut.close();
-		}
+		gzipOut.close();
+	}
 }

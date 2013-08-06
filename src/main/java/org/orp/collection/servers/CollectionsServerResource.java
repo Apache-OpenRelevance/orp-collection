@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.orp.collection.commons.CollectionsResource;
@@ -22,35 +24,53 @@ import org.restlet.ext.json.JsonRepresentation;
 import org.restlet.ext.wadl.WadlServerResource;
 import org.restlet.representation.Representation;
 
-public class CollectionsServerResource extends WadlServerResource implements CollectionsResource{
+public class CollectionsServerResource extends WadlServerResource implements
+		CollectionsResource {
 	
+	private static final Logger log = LogManager.getLogger(CollectionsServerResource.class.getName());
+
 	private DBHandler handler;
 	private static final String REPO = "collections/";
-	
-	public void doInit(){
-		
+
+	public void doInit() {
+
 		try {
-			handler = DBHandlerImpl.newHandler(DriverManager.getConnection("jdbc:sqlite:db/collection.db"));
+			handler = DBHandlerImpl.newHandler(DriverManager
+					.getConnection("jdbc:sqlite:db/collection.db"));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
-	public Representation list(){
+
+	public Representation list() throws SQLException {
+		log.info("list(): list all collections");
+
 		Map<String, Object> result = new HashMap<String, Object>();
 		Set<Map<String, Object>> rs = handler.selectAll("COLLECTION");
-		JSONArray collections = new JSONArray();
-		for(Map<String, Object> obj : rs){
-			if(obj.get("topics_size") == null) obj.put("topics_size", "N/A");
-			if(obj.get("qrels_size") == null) obj.put("qrels_size", "N/A");
-			if(obj.get("corpus") == null) obj.put("corpus", "N/A");
-			collections.put(obj);
+		
+		if(rs == null || rs.isEmpty()) {
+			log.info("no result is returned from COLLECTION");
 		}
 		
+		JSONArray collections = new JSONArray();
+
+		for (Map<String, Object> obj : rs) {
+
+			if (obj.get("topics_size") == null)
+				obj.put("topics_size", "N/A");
+			if (obj.get("qrels_size") == null)
+				obj.put("qrels_size", "N/A");
+			if (obj.get("corpus") == null)
+				obj.put("corpus", "N/A");
+
+			collections.put(obj);
+
+		}
+
 		result.put("collections", collections);
-			
-		if(result.isEmpty())
+
+		if (result.isEmpty())
 			setStatus(Status.SUCCESS_NO_CONTENT);
 		try {
 			handler.clean();
@@ -58,59 +78,79 @@ public class CollectionsServerResource extends WadlServerResource implements Col
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		return new JsonRepresentation(result);
 	}
 
 	public Representation execute(JsonRepresentation entity) {
-		try{
-			Map<String, Object> values = new HashMap<String, Object>();
+		log.info("execute()");
+
+		Map<String, Object> values = new HashMap<String, Object>();
+		
+		try {
+			
 			String name = JsonUtils.getSimpleValue(entity, "name");
 			values.put("name", name);
 			String id = UUID.randomUUID().toString().replaceAll("-", "");
 			values.put("id", id);
-			values.put("uri", getRequest().getResourceRef().getIdentifier() + "/" + id);
-			values.put("create_time", CollectionUtils.dateFormat(new Date(System.currentTimeMillis())));
-					
+			values.put("uri", getRequest().getResourceRef().getIdentifier()
+					+ "/" + id);
+			values.put("create_time", CollectionUtils.dateFormat(new Date(
+					System.currentTimeMillis())));
+
 			new File(REPO + id + "/topics/").mkdirs();
 			new File(REPO + id + "/qrels/").mkdirs();
-					
+
 			handler.insert("COLLECTION", values);
 			handler.clean();
-			
+
 			setStatus(Status.SUCCESS_CREATED);
-			return new JsonRepresentation(values);
-		}catch(JSONException je){
-			setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
 			
+		} catch (JSONException je) {
+			setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+			return CollectionUtils.message("Invalid key or missing value.");
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		return CollectionUtils.message("Invalid key or missing value.");
+		
+		if(values == null || values.size() == 0) {
+			log.info("no value has been put into the map");
+		}
+		return new JsonRepresentation(values);
 	}
-	
-	public Representation delete(JsonRepresentation entity){
+
+	public Representation delete(JsonRepresentation entity) {
+		log.info("delete()");
+		
 		String id = null;
-		try{
-		    id = JsonUtils.getSimpleValue(entity, "id");
-			if(handler.selectAllById("Collection", id) == null)
+
+		try {
+
+			id = JsonUtils.getSimpleValue(entity, "id");
+
+			if (handler.selectAllById("Collection", id) == null)
 				throw new CollectionNotFoundException();
+
 			CollectionUtils.deleteFile(new File(REPO + id));
 			handler.deleteById("Collection", id);
 			handler.clean();
-					
-		}catch(JSONException je){
+
+		} catch (JSONException je) {
 			setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
 			return CollectionUtils.message("Invalid key or missing value.");
-		}catch(CollectionNotFoundException ce){
+		} catch (CollectionNotFoundException ce) {
 			setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
 			return CollectionUtils.message("Collection " + id + " not found.");
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return CollectionUtils.message("Collection " + id + " has been deleted.");
+
+		return CollectionUtils.message("Collection " + id
+				+ " has been deleted.");
 	}
-	
+
 }

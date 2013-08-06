@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 
 public class DBHandlerImpl implements DBHandler{
 	
-	private static final Logger log = LogManager.getLogger(DBHandler.class.getName());
+	private static final Logger log = LogManager.getLogger(DBHandlerImpl.class.getName());
 	
 	Connection c;
 	Statement stmt;
@@ -65,6 +65,38 @@ public class DBHandlerImpl implements DBHandler{
 		 return schema;
 	}
 	
+	
+	public PreparedStatement setPrepStmt(String sql, TreeMap<String, Object> conditions) {
+		log.info("setPrepStmt()");
+		
+		try {
+			prepstmt = c.prepareStatement(sql);
+			int count = 1;
+			for(String key : conditions.keySet()) {
+				Object value = conditions.get(key);
+				if (value instanceof String)
+					prepstmt.setString(count ++, (String)value);
+				if (value instanceof Integer) 
+					prepstmt.setInt(count ++, (Integer)value);
+				if (value instanceof Double) 
+					prepstmt.setDouble(count ++, (Double)value);
+				if (value instanceof Float) 
+					prepstmt.setFloat(count ++, (Float)value);
+				if (value instanceof Date) {
+					SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD hh:mm:ss");
+					prepstmt.setString(count ++, sdf.format((Date)value));
+				}
+			}
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return prepstmt;
+	}
+	
 	public String insertSQL(String tabName, Map<String, Object> values) {
 		log.info("insert()");
 		log.info("inserting into table: " + tabName);
@@ -79,14 +111,25 @@ public class DBHandlerImpl implements DBHandler{
 					"no value is provided to insert into table");
 		}
 		
-		if(tabName.equals("COLLECTION")) {
-			return insertIntoCollectionSQL(values);
-		} else {
-			throw new RuntimeException(
-					"Please insert into the exit tables");
+//		if(tabName.equals("COLLECTION")) {
+//			return insertIntoCollectionSQL(values);
+//		} else {
+//			throw new RuntimeException(
+//					"Please insert into the exit tables");
+//		}
+		
+		String cond_list = "";
+		String insertSQL = "";
+
+		for(String key : values.keySet()) {
+			cond_list = cond_list + key + " = ? AND ";
 		}
 		
-	
+		if(cond_list.length() > 0) {
+			cond_list = cond_list.substring(0, cond_list.length() - 5);
+		}
+		
+		return null;
 	}
 	
 	private String insertIntoCollectionSQL(Map<String, Object> values) {
@@ -168,36 +211,36 @@ public class DBHandlerImpl implements DBHandler{
 		return selectSQL;
 		
 	}
+
 	
-	public PreparedStatement setPrepStmt(String sql, TreeMap<String, Object> conditions) {
-		log.info("setPrepStmt()");
+	@Override
+	public Map<String, Object> selectAllById(String tabName, String id) throws SQLException  {
+		// TODO Auto-generated method stub
+		log.info("selectAllById()");
+		log.info("table name: " + tabName + "; id: " + id);
 		
-		try {
-			prepstmt = c.prepareStatement(sql);
-			int count = 1;
-			for(String key : conditions.keySet()) {
-				Object value = conditions.get(key);
-				if (value instanceof String)
-					prepstmt.setString(count ++, (String)value);
-				if (value instanceof Integer) 
-					prepstmt.setInt(count ++, (Integer)value);
-				if (value instanceof Double) 
-					prepstmt.setDouble(count ++, (Double)value);
-				if (value instanceof Float) 
-					prepstmt.setFloat(count ++, (Float)value);
-				if (value instanceof Date) {
-					SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD hh:mm:ss");
-					prepstmt.setString(count ++, sdf.format((Date)value));
-				}
-			}
-			
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Map<String, Object> result = new HashMap<String, Object>();
+		String selectSQL = "SELECT * FROM " + tabName + " WHERE ID = ?";
+		
+		prepstmt = c.prepareStatement(selectSQL);
+		prepstmt.setString(1, id);
+		c.commit();
+		
+		ResultSet rs = prepstmt.executeQuery();
+		if(!rs.isBeforeFirst()) {
+			log.info("There is no result returned for the provided id");
 		}
 		
-		return prepstmt;
+		while(rs.next()) {
+			result.put("uri", rs.getString("URI"));
+			result.put("name", rs.getString("NAME"));
+			result.put("topics_size", rs.getDouble("TOPICS_SIZE"));
+			result.put("qrels_size", rs.getDouble("QRELS_SIZE"));
+			result.put("date", rs.getDate("DATE"));
+		}
+		
+		return result;
+		
 	}
 	
 	public List<String> selectUriByName(String tabName, String collectionName){
@@ -295,7 +338,7 @@ public class DBHandlerImpl implements DBHandler{
 		
 	}
 	
-	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds) {
+	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds) throws SQLException {
 		
 		TreeMap<String, Object> sortedValues = new TreeMap<String, Object>();
 		
@@ -305,14 +348,10 @@ public class DBHandlerImpl implements DBHandler{
 		String updateSQL = updateSQL(tabName, sortedValues, sortedConds);
 		prepstmt = setPrepStmt(updateSQL, sortedConds);
 		
-		try {
 			prepstmt.executeUpdate();
 			c.commit();
 			clean();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
 
 	}
 	
@@ -442,27 +481,6 @@ public class DBHandlerImpl implements DBHandler{
 		clean();
 			
 	}
-	
-
-	@Override
-	public Map<String, Object> selectAllById(String tabName, String id) {
-		return null;
-		// TODO Auto-generated method stub
-	}
-//		String selectSQL = "SELECT * FROM " + tabName + " WHERE ID = ?";
-//		
-//		prepstmt = c.prepareStatement(selectSQL);
-//		prepstmt.setString(1, id);
-//		c.commit();
-//		
-//		ResultSet rs = prepstmt.executeQuery();
-//		
-		
-		
-		
-		
-		
-	
 
 	@Override
 	public Set<Map<String, Object>> select(String tabName,
@@ -470,6 +488,8 @@ public class DBHandlerImpl implements DBHandler{
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	
 
 	@Override
 	public void insert(String tabName, Map<String, Object> values) {

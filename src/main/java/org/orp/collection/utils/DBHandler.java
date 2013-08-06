@@ -38,7 +38,7 @@ public interface DBHandler {
 	 * Map<String, Object> stands for a row and a set stands for the whole table. 
 	 */
 	
-	public Set<Map<String, Object>> selectAll(String tabName);
+	public Set<Map<String, Object>> selectAll(String tabName) throws SQLException;
 	
 	/**
 	 * 
@@ -49,9 +49,10 @@ public interface DBHandler {
 	 * This method is used for identifying data for a specific id. 
 	 * 
 	 * Since this method may involve user input, prepared SQL statement is required. 
+	 * @throws SQLException 
 	 */
 	
-	public Map<String, Object> selectAllById(String tabName, String id);
+	public Map<String, Object> selectAllById(String tabName, String id) throws SQLException;
 	/**
 	 * 
 	 * @param a table's name
@@ -96,8 +97,9 @@ public interface DBHandler {
 	 * This method is used for updating a table. 
 	 * 
 	 * Since this method may involves user input, prepared SQL statement is required. 
+	 * @throws SQLException 
 	 */
-	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds);
+	public void update(String tabName, Map<String, Object> values, Map<String, Object> conds) throws SQLException;
 	
 	/**
 	 * 
